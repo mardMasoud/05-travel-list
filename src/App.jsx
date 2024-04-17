@@ -5,8 +5,9 @@ import { useState } from "react";
 /* eslint-disable no-undef */
 function App() {
     const initialItems = [
-        { id: 1, description: "Passports", quantity: 2, packed: false },
-        { id: 2, description: "Socks", quantity: 12, packed: false },
+        { id: 1, description: "a", quantity: 17, packed: false },
+        { id: 2, description: "b", quantity: 20, packed: false },
+        { id: 3, description: "c", quantity: 12, packed: false },
     ];
     const [Items, setItems] = useState(initialItems);
     function handleAddItems(newItem) {
@@ -17,13 +18,14 @@ function App() {
     }
     function handleChecked(id) {
         console.log(id);
-        setItems((Items) =>
-        Items.map(item=>item.id===id?{...item,packed:!item.packed}:item)
+        setItems(
+            (Items) =>
+                Items.map((item) => (item.id === id ? { ...item, packed: !item.packed } : item))
             // Items.map(function (item) {
             //     if (item.id === id) return  ({...item, packed: !item.packed });
-                
+
             //      return item
-                
+
             // })
         );
         // console.log(id)
@@ -36,6 +38,7 @@ function App() {
                 Items={Items}
                 handleChecked={handleChecked}
                 onDeleteItems={handleDeleteItems}
+                setItems={setItems}
             />
             <Stats numItems={Items.length} />
         </div>
@@ -79,11 +82,23 @@ function Form({ onAddItems }) {
         </form>
     );
 }
-function PackingList({ Items, handleChecked, onDeleteItems }) {
+function PackingList({ Items, handleChecked, onDeleteItems, setItems }) {
+    const [sort, setSort] = useState("input");
+    let sortedItems;
+
+    if (sort === "input") sortedItems = Items;
+    if (sort === "description")
+        sortedItems = Items.slice().sort((a, b) => a.description.localeCompare(b.description));
+
+    if (sort === "packed")
+    sortedItems = Items.sort((a, b) =>
+             Number(b.packed) - Number(a.packed)
+     );
+
     return (
         <div className="list">
             <ul>
-                {Items.map((item) => (
+                {sortedItems.map((item) => (
                     <Item
                         key={item.id}
                         Itemobj={item}
@@ -92,6 +107,13 @@ function PackingList({ Items, handleChecked, onDeleteItems }) {
                     />
                 ))}
             </ul>
+            <div className="actions">
+                <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                    <option value="input">sort by order</option>
+                    <option value="description">sort by description</option>
+                    <option value="packed">sort by packed</option>
+                </select>
+            </div>
         </div>
     );
 }
@@ -111,7 +133,7 @@ function Item({ Itemobj, handleChecked, onDeleteItems }) {
         </li>
     );
 }
-function Stats({numItems}) {
+function Stats({ numItems }) {
     return <footer className="stats">💼You have {numItems} items on your list</footer>;
 }
 export default App;
