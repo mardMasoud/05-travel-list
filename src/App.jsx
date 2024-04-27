@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 
 /* eslint-disable no-undef */
+const ItemContext = createContext();
 function App() {
     const initialItems = [
         { id: 1, description: "a", quantity: 17, packed: false },
@@ -31,23 +32,28 @@ function App() {
         // console.log(id)
     }
     return (
-        <div className="app">
-            <Logo />
-            <Form onAddItems={handleAddItems} />
-            <PackingList
-                Items={Items}
-                handleChecked={handleChecked}
-                onDeleteItems={handleDeleteItems}
-                setItems={setItems}
-            />
-            <Stats numItems={Items.length} />
-        </div>
+        <ItemContext.Provider
+            value={{
+                onAddItems: handleAddItems,
+                Items,
+                handleChecked,
+                onDeleteItems: handleDeleteItems,
+            }}
+        >
+            <div className="app">
+                <Logo />
+                <Form />
+                <PackingList />
+                <Stats />
+            </div>
+        </ItemContext.Provider>
     );
 }
 function Logo() {
     return <h1>🌴 Far Away🧳</h1>;
 }
-function Form({ onAddItems }) {
+function Form() {
+    const { onAddItems } = useContext(ItemContext);
     const [dec, setDec] = useState("");
     const [qun, setQun] = useState(1);
     return (
@@ -82,7 +88,8 @@ function Form({ onAddItems }) {
         </form>
     );
 }
-function PackingList({ Items, handleChecked, onDeleteItems, setItems }) {
+function PackingList() {
+    const { Items, handleChecked, onDeleteItems } = useContext(ItemContext);
     const [sort, setSort] = useState("input");
     let sortedItems;
 
@@ -90,21 +97,13 @@ function PackingList({ Items, handleChecked, onDeleteItems, setItems }) {
     if (sort === "description")
         sortedItems = Items.slice().sort((a, b) => a.description.localeCompare(b.description));
 
-    if (sort === "packed")
-    sortedItems = Items.sort((a, b) =>
-             Number(b.packed) - Number(a.packed)
-     );
+    if (sort === "packed") sortedItems = Items.sort((a, b) => Number(b.packed) - Number(a.packed));
 
     return (
         <div className="list">
             <ul>
                 {sortedItems.map((item) => (
-                    <Item
-                        key={item.id}
-                        Itemobj={item}
-                        handleChecked={handleChecked}
-                        onDeleteItems={onDeleteItems}
-                    />
+                    <Item key={item.id} Itemobj={item} />
                 ))}
             </ul>
             <div className="actions">
@@ -117,8 +116,9 @@ function PackingList({ Items, handleChecked, onDeleteItems, setItems }) {
         </div>
     );
 }
-function Item({ Itemobj, handleChecked, onDeleteItems }) {
+function Item({ Itemobj }) {
     //  const [pack,setPack]=useState(false)
+    const { handleChecked, onDeleteItems } = useContext(ItemContext);
     return (
         <li>
             <input
@@ -133,7 +133,8 @@ function Item({ Itemobj, handleChecked, onDeleteItems }) {
         </li>
     );
 }
-function Stats({ numItems }) {
-    return <footer className="stats">💼You have {numItems} items on your list</footer>;
+function Stats() {
+    const {Items} = useContext(ItemContext);
+    return <footer className="stats">💼You have {Items.length} items on your list</footer>;
 }
 export default App;
